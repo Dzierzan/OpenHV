@@ -302,3 +302,20 @@ TurretArtillery:
 	Warhead@Damage: SpreadDamage
 		Versus:
 			Heavy: 115
+
+OrbitalAirstrike:
+	ValidTargets: Water, Ground, Air
+	Report: ray_gun-Mike_Koenig.wav
+	Warhead@DamageImpact: SpreadDamage
+		Spread: 1c0
+		Damage: 1000
+		Falloff: 1000, 368, 135, 50, 18, 7, 0
+		ValidTargets: Water, Ground, Air
+	Warhead@SpawnPods: SpawnActor
+		Actors: scout1
+		InternalOwner: Neutral
+		ValidTargets: Water, Ground, Air
+		TerrainTypes: Water, Ground
+	Warhead@Debris: FireShrapnel
+		Weapon: Debris
+		Amount: 5

@@ -115,6 +115,14 @@ railgun:
 		Offset: 0, -42
 		ZOffset: 1023
 
+orbital_airstrike:
+	idle: bits/airstrike.png
+		Frames: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29
+		Length: *
+		Tick: 40
+		Offset: 0, -60
+		ZOffset: 1023
+
 smoke:
 	idle: bits/smoke.png
 		Length: 6
