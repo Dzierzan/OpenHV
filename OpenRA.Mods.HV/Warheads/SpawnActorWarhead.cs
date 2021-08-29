@@ -9,19 +9,21 @@
  */
 #endregion
 
-using System.Collections.Generic;
 using System.Linq;
 using OpenRA.GameRules;
+using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Mods.Common.Warheads;
+using OpenRA.Mods.HV.Activities;
 using OpenRA.Primitives;
 using OpenRA.Traits;
 
-namespace OpenRA.Mods.OpenHV.Warheads
+namespace OpenRA.Mods.HV.Warheads
 {
+	public enum OwnerType { Attacker, InternalName }
+
 	[Desc("Spawn actors upon explosion. Don't use this with buildings.")]
-	public class SpawnActorWarhead : Warhead, IRulesetLoaded<WeaponInfo>
+	public class SpawnActorWarhead : ImpactAirWarhead, IRulesetLoaded<WeaponInfo>
 	{
 		[Desc("The cell range to try placing the actors within.")]
 		public readonly int Range = 10;
@@ -30,26 +32,35 @@ namespace OpenRA.Mods.OpenHV.Warheads
 		[ActorReference]
 		public readonly string[] Actors = { };
 
+		[Desc("Try to parachute the actors. When unset, actors will just fall down visually using FallRate."
+			+ " Requires the Parachutable trait on all actors if set.")]
+		public readonly bool Paradrop = false;
+
+		public readonly int FallRate = 130;
+
+		[Desc("Always spawn the actors on the ground.")]
+		public readonly bool ForceGround = false;
+
+		[Desc("Owner of the spawned actor. Allowed keywords:" +
+			"'Attacker' and 'InternalName'.")]
+		public readonly OwnerType OwnerType = OwnerType.Attacker;
+
 		[Desc("Map player to use when 'InternalName' is defined on 'OwnerType'.")]
 		public readonly string InternalOwner = "Neutral";
 
 		[Desc("Defines the image of an optional animation played at the spawning location.")]
 		public readonly string Image = null;
 
-		[SequenceReference("Image")]
+		[SequenceReference(nameof(Image), allowNullImage: true)]
 		[Desc("Defines the sequence of an optional animation played at the spawning location.")]
-		public readonly string Sequence = null;
+		public readonly string Sequence = "idle";
 
 		[PaletteReference("UsePlayerPalette")]
 		[Desc("Defines the palette of an optional animation played at the spawning location.")]
 		public readonly string Palette = "effect";
 
 		[Desc("List of sounds that can be played at the spawning location.")]
-		public readonly string[] Sounds = new string[0];
-
-		[FieldLoader.Require]
-		[Desc("The terrain types that the actor is allowed to spawn.")]
-		public readonly HashSet<string> TerrainTypes = new HashSet<string>();
+		public readonly string[] Sounds = { };
 
 		public readonly bool UsePlayerPalette = false;
 
@@ -74,44 +85,74 @@ namespace OpenRA.Mods.OpenHV.Warheads
 			var map = firedBy.World.Map;
 			var targetCell = map.CellContaining(target.CenterPosition);
 
+			if (target.Type == TargetType.Invalid)
+				return;
+
 			var targetCells = map.FindTilesInCircle(targetCell, Range);
 			var cell = targetCells.GetEnumerator();
 
 			foreach (var a in Actors)
 			{
+				var placed = false;
 				var td = new TypeDictionary();
 				var ai = map.Rules.Actors[a.ToLowerInvariant()];
 
-				td.Add(new OwnerInit(firedBy.World.Players.First(p => p.InternalName == InternalOwner)));
+				if (OwnerType == OwnerType.Attacker)
+					td.Add(new OwnerInit(firedBy.Owner));
+				else
+					td.Add(new OwnerInit(firedBy.World.Players.First(p => p.InternalName == InternalOwner)));
 
-				while (cell.MoveNext())
+				// Lambdas can't use 'in' variables, so capture a copy for later
+				var delayedTarget = target;
+
+				firedBy.World.AddFrameEndTask(w =>
 				{
-					if (!firedBy.World.ActorMap.GetActorsAt(cell.Current).Any() && TerrainTypes.Contains(firedBy.World.Map.GetTerrainInfo(cell.Current).Type))
-					{
-						td.Add(new LocationInit(cell.Current));
-						var unit = firedBy.World.CreateActor(false, a.ToLowerInvariant(), td);
+					var unit = firedBy.World.CreateActor(false, a.ToLowerInvariant(), td);
+					var positionable = unit.TraitOrDefault<IPositionable>();
+					cell = targetCells.GetEnumerator();
 
-						firedBy.World.AddFrameEndTask(w =>
+					while (cell.MoveNext() && !placed)
+					{
+						var subCell = positionable.GetAvailableSubCell(cell.Current);
+
+						if (ai.HasTraitInfo<AircraftInfo>()
+							&& ai.TraitInfo<AircraftInfo>().CanEnterCell(firedBy.World, unit, cell.Current))
+							subCell = SubCell.FullCell;
+
+						if (subCell != SubCell.Invalid)
 						{
+							positionable.SetPosition(unit, cell.Current, subCell);
+
+							var pos = unit.CenterPosition;
+							if (!ForceGround)
+								pos += new WVec(WDist.Zero, WDist.Zero, firedBy.World.Map.DistanceAboveTerrain(delayedTarget.CenterPosition));
+
+							positionable.SetCenterPosition(unit, pos);
 							w.Add(unit);
+
+							if (Paradrop)
+								unit.QueueActivity(new Parachute(unit));
+							else
+								unit.QueueActivity(new FallDown(unit, pos, FallRate));
 
 							var palette = Palette;
 							if (UsePlayerPalette)
 								palette += unit.Owner.InternalName;
 
-							var spawn = firedBy.World.Map.CenterOfCell(cell.Current);
-
 							if (Image != null)
-								w.Add(new SpriteEffect(spawn, w, Image, Sequence, palette));
+								w.Add(new SpriteEffect(pos, w, Image, Sequence, palette));
 
 							var sound = Sounds.RandomOrDefault(firedBy.World.LocalRandom);
 							if (sound != null)
-								Game.Sound.Play(SoundType.World, sound, spawn);
-						});
+								Game.Sound.Play(SoundType.World, sound, pos);
 
-						break;
+							placed = true;
+						}
 					}
-				}
+
+					if (!placed)
+						unit.Dispose();
+				});
 			}
 		}
 	}
