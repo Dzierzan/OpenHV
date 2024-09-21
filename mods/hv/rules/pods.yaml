@@ -6,7 +6,7 @@ RIFLEMAN:
 	Buildable:
 		Queue: Pod
 		Description: actor-rifleman.description
-		Prerequisites: ~module
+		Prerequisites: ~module.sc
 		BuildPaletteOrder: 10
 	Encyclopedia:
 		Description: actor-rifleman.encyclopedia
@@ -39,6 +39,20 @@ RIFLEMAN:
 		Voice: Attack
 	WithMuzzleOverlay:
 		IgnoreOffset: true
+
+RIFLEMAN2:
+	Inherits: RIFLEMAN
+	Buildable:
+		Queue: Pod
+		Description: actor-rifleman.description
+		Prerequisites: ~module.yi
+		BuildPaletteOrder: 10
+	Armament@Primary:
+		Weapon: LightMachineGun
+		MuzzleSequence: muzzle
+		LocalOffset: 25,-150,0, 25,150,0
+	WithMuzzleOverlay:
+		-IgnoreOffset:
 
 ROCKETEER:
 	Inherits: ^Pod

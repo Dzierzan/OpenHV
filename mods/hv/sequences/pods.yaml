@@ -18,6 +18,24 @@ rifleman:
 		Filename: bits/units-icons.png
 		Start: 0
 
+rifleman2:
+	idle:
+		Filename: bits/rifleman2.png
+		Facings: 8
+	muzzle:
+		Filename: bits/muzzle2.png
+		Length: 3
+		Facings: 8
+		Tick: 50
+	die:
+		Filename: bits/poddeath.png
+		Length: 7
+		Tick: 80
+		Offset: 0,-2
+	icon:
+		Filename: bits/units-icons.png
+		Start: 0
+
 rocketeer:
 	idle:
 		Filename: bits/rocketeer.png
