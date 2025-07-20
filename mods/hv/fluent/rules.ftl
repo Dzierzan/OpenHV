@@ -1206,6 +1206,18 @@ actor-firetruck =
 actor-firefighter =
    .name = Firefighter Pod
 
+actor-barragecraft =
+   .name = Barrage Craft
+   .generic-name = Tank
+   .description = A barrage craft which shoots missiles.
+      Strong vs Tanks, Buildings
+      Weak vs Pods
+   .encyclopedia = Barrage Craft
+
+     {actor-barragecraft.description}
+
+     Availability: Universal
+
 ## Weapons
 actor-landmine-name = AI Mine
 actor-watermine-name = AI Water Mine

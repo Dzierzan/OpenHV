@@ -345,3 +345,25 @@ DiscThrower:
 		Explosions: small
 		ImpactSounds: explosion06.ogg
 		ValidTargets: Air
+
+BarrageCraftRocket:
+	Inherits: AntiGroundRocket
+	ReloadDelay: 200
+	Burst: 16
+	BurstDelays: 4
+	Range: 10c0
+	MinRange: 1c0
+	Projectile: Bullet
+		Speed: 250
+		Inaccuracy: 2c512
+	Warhead@Damage: SpreadDamage
+		Damage: 8000
+		Spread: 0c512
+		Versus:
+			None: 12
+			Steel: 75
+			Light: 75
+			Heavy: 75
+			Concrete: 75
+	Warhead@Incendiary: TreeDamage
+		Damage: 6000

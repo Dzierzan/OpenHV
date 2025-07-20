@@ -1273,3 +1273,54 @@ WATERTANK:
 		Range: 6c0
 	Voiced:
 		VoiceSet: CarVoice
+
+BARRAGECRAFT:
+	Inherits: ^TrackedVehicle
+	Inherits@AutoTarget: ^AutoTargetGroundAssaultMove
+	Valued:
+		Cost: 5000
+	Tooltip:
+		Name: actor-barragecraft.name
+		GenericName: actor-barragecraft.generic-name
+	Selectable:
+		Class: barragecraft
+	Buildable:
+		Queue: Tank
+		Prerequisites: ~disabled
+		BuildPaletteOrder: 80
+		Description: actor-barragecraft.description
+	Encyclopedia:
+		Description: actor-barragecraft.encyclopedia
+		Order: 35
+		Scale: 3
+		Category: Tanks
+	UpdatesPlayerStatistics:
+		AddToArmyValue: true
+	Health:
+		HP: 85000
+	Armor:
+		Type: Heavy
+	Mobile:
+		Speed: 65
+	RevealsShroud:
+		Range: 10c0
+		MinRange: 5c0
+		RevealGeneratedShroud: False
+	RevealsShroud@Hacked:
+		Range: 3c0
+	Turreted:
+		TurnSpeed: 40
+		Offset: 0,0,150
+	Armament:
+		Weapon: BarrageCraftRocket
+		LocalOffset: 700,200,0, 700,50,0, 700,-100,0
+	AttackTurreted:
+		PauseOnCondition: jammed
+		Voice: Attack
+	WithSpriteTurret:
+	WithMuzzleOverlay:
+	Selectable:
+		DecorationBounds: 2048, 1843
+	FireWarheadsOnDeath:
+		Weapon: UnitExplodeLarge
+		EmptyWeapon: UnitExplodeLarge
